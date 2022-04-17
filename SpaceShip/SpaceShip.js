@@ -21,13 +21,14 @@ let fireFighter = {
   x: width / 2,
   y: 100,
   rotation: 0,
+  thrustForce: 0.5,
 };
 
-let fallAcceleration = 0.1;
-let fallSpeed = 0;
+let gravity = 0.1;
 
-let thrustAcceleration = 0.2;
-let thrustSpeed = 0;
+let downSpeed = 0;
+let sideSpeed = 0;
+
 let gameState = "play";
 
 //the draw function. It makes things happen
@@ -37,9 +38,10 @@ function draw() {
 
   if (gameState === "play") {
     if (keyIsDown(32)) {
-      thrustSpeed -= 3 * thrustAcceleration;
-      fireFighter.x += Math.cos(fireFighter.rotation) * thrustSpeed;
-      fireFighter.y += Math.sin(fireFighter.rotation) * thrustSpeed;
+      sideSpeed +=
+        Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
+      downSpeed -=
+        Math.sin(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
     }
 
     if (keyIsDown(68)) {
@@ -48,10 +50,12 @@ function draw() {
       fireFighter.rotation -= 0.1;
     }
 
-    fallSpeed += fallAcceleration;
-    fireFighter.y += fallSpeed;
+    downSpeed += gravity;
+    fireFighter.y += downSpeed;
 
     //solution inspired by Garrit's lecture on car rotation
+    fireFighter.x -= sideSpeed;
+    // fireFighter.y -= downSpeed;
   }
 }
 
@@ -62,7 +66,8 @@ function keyPressed() {
     fireFighter.x = width / 2;
     fireFighter.y = 100;
     fireFighter.rotation = 0;
-    fallSpeed = 0;
+    downSpeed = 0;
+    sideSpeed = 0;
     gameState = "play";
   }
 }
