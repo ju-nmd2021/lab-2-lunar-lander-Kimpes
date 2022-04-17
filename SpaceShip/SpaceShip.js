@@ -1,5 +1,6 @@
-function extinguisherMan(x, y, rotation) {
-  translate(x, y);
+function fireFighterSprite(object) {
+  translate(object.x, object.y);
+  rotate(object.rotation);
   strokeWeight(0);
 
   //fire extinguisher body
@@ -16,26 +17,41 @@ function extinguisherMan(x, y, rotation) {
 }
 
 //variables for gameplay
-let extinguisherX = width / 2;
-let extinguisherY = 100;
-let extinguisherRotation = 0;
-let gravity = 0.2;
-let speed = 0;
+let fireFighter = {
+  x: width / 2,
+  y: 100,
+  rotation: 0,
+};
+
+let fallAcceleration = 0.1;
+let fallSpeed = 0;
+
+let thrustAcceleration = 0.2;
+let thrustSpeed = 0;
 let gameState = "play";
 
 //the draw function. It makes things happen
 function draw() {
   background(150, 150, 150);
-  extinguisherMan(extinguisherX, extinguisherY);
+  fireFighterSprite(fireFighter);
 
   if (gameState === "play") {
     if (keyIsDown(32)) {
-      speed -= gravity;
-      extinguisherY += speed;
-    } else {
-      speed += gravity;
-      extinguisherY += speed;
+      thrustSpeed -= 3 * thrustAcceleration;
+      fireFighter.x += Math.cos(fireFighter.rotation) * thrustSpeed;
+      fireFighter.y += Math.sin(fireFighter.rotation) * thrustSpeed;
     }
+
+    if (keyIsDown(68)) {
+      fireFighter.rotation += 0.1;
+    } else if (keyIsDown(65)) {
+      fireFighter.rotation -= 0.1;
+    }
+
+    fallSpeed += fallAcceleration;
+    fireFighter.y += fallSpeed;
+
+    //solution inspired by Garrit's lecture on car rotation
   }
 }
 
@@ -43,10 +59,10 @@ function keyPressed() {
   console.log(keyCode);
   if (keyIsDown(82)) {
     //reset button for testing purposes
-    extinguisherX = width / 2;
-    extinguisherY = 100;
-    extinguisherRotation = 0;
-    speed = 0;
+    fireFighter.x = width / 2;
+    fireFighter.y = 100;
+    fireFighter.rotation = 0;
+    fallSpeed = 0;
     gameState = "play";
   }
 }
