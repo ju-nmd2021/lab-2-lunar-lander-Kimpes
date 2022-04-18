@@ -37,6 +37,7 @@ let fireFighter = {
   rotation: 0,
   thrustForce: 0.5,
   collision: false,
+  state: "fall",
 };
 
 let platform1 = {
@@ -50,11 +51,13 @@ let platform2 = {
   width: 200,
 };
 
+let platforms = [platform1, platform2];
+
 let gravity = 0.1;
 let friction = 0.9;
 let downSpeed = 0;
 let sideSpeed = 0;
-let gameState = "play";
+let gameState = "fail";
 
 //the draw function. It makes things happen
 function draw() {
@@ -62,8 +65,6 @@ function draw() {
   fireFighterSprite(fireFighter);
   collisionBlock(platform1);
   collisionBlock(platform2);
-
-  let platforms = [platform1, platform2];
 
   if (gameState === "play") {
     if (keyIsDown(32)) {
@@ -73,26 +74,21 @@ function draw() {
         Math.sin(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
     }
 
-    //checks collision with platform1
-    // if (
-    //   fireFighter.y + 10 > platform1.y &&
-    //   fireFighter.y < platform1.y + 50 &&
-    //   fireFighter.x < platform1.x + platform1.width / 2 &&
-    //   fireFighter.x > platform1.x - platform1.width / 2
-    // ) {
-    //   fireFighter.collision = true; //TODO: convert to for loop
-    // } else {
-    //   fireFighter.collision = false;
-    // }
-
-    for (let platform in platforms) {
+    //checks collision with all platforms
+    let collisionDetection = 0;
+    for (let platform of platforms) {
       if (
         fireFighter.y + 10 > platform.y &&
         fireFighter.y < platform.y + 50 &&
         fireFighter.x < platform.x + platform.width / 2 &&
         fireFighter.x > platform.x - platform.width / 2
       ) {
+        collisionDetection++;
+      }
+      if (collisionDetection) {
         fireFighter.collision = true;
+      } else {
+        fireFighter.collision = false;
       }
     }
 
@@ -125,6 +121,25 @@ function draw() {
     }
     fireFighter.y += downSpeed;
     fireFighter.x += sideSpeed;
+
+    if (
+      fireFighter.x < -50 ||
+      fireFighter.x > width + 50 ||
+      fireFighter.y < -50 ||
+      fireFighter.y > height + 50
+    ) {
+      gameState = "fail";
+    }
+  } else if (gameState === "fail") {
+    textAlign(CENTER);
+    push();
+    textSize(30);
+    text("GAME OVER", width / 2, 100);
+    pop();
+
+    push();
+    text("Press R to play again", width / 2, 500);
+    pop();
   }
 }
 
