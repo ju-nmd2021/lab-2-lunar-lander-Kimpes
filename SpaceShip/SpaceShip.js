@@ -105,6 +105,9 @@ function collisionBlock(object) {
   push();
   translate(object.x, object.y);
   fill(100, 100, 100);
+  if (object.goal) {
+    fill(200, 100, 100);
+  }
   strokeWeight(0);
   rect(-object.width / 2, 0, object.width, height - object.y);
   pop();
@@ -117,17 +120,20 @@ let fireFighter = {
   rotation: 0,
   thrustForce: 0.5,
   state: "fall",
+  fuel: 100,
 };
 
 let platform1 = {
   x: 100,
   y: 300,
   width: 100,
+  goal: false,
 };
 let platform2 = {
   x: 400,
   y: 300,
   width: 100,
+  goal: true,
 };
 
 let platforms = [platform1, platform2];
@@ -145,6 +151,7 @@ function draw() {
   if (gameState === "start") {
     textAlign(CENTER);
     push();
+    fill(200, 50, 50);
     textSize(30);
     text(
       "Lenny Fire Fighter's Last Leap of Luck The Game",
@@ -155,15 +162,38 @@ function draw() {
     pop();
 
     push();
+    textSize(18);
+    text(
+      "Land on burning buildings as quickly and safely as possible for a higher score",
+      width / 2 - 125,
+      200,
+      250
+    );
+    pop();
+
+    push();
+    translate(0, 150);
     text("Press SPACEBAR to thrust", width / 2, 200);
     text("Press A & D to steer", width / 2, 220);
     text("Press R to start (and restart)", width / 2, 240);
     pop();
   } else if (gameState === "win") {
+    textAlign(CENTER);
+    push();
+    fill(200, 50, 50);
+    textSize(30);
+    text("Success!", width / 2 - 275, 100, 550);
+    pop();
   } else {
     fireFighterSprite(fireFighter);
     collisionBlock(platform1);
     collisionBlock(platform2);
+
+    push();
+    fill(0, 0, 0);
+    textSize(30);
+    text("fuel: " + fireFighter.fuel, 80, 40);
+    pop();
 
     if (gameState === "play") {
       //checks collision with all platforms
@@ -190,17 +220,23 @@ function draw() {
         if (collisionDetection) {
           fireFighter.state = "stand";
           fireFighter.y = platform.y - 9;
+          if (platform.goal === true && fireFighter.sideSpeed === 0) {
+            console.log("win");
+            gameState = "win";
+          }
         } else {
           fireFighter.state = "fall";
         }
       }
 
-      if (keyIsDown(32)) {
+      if (keyIsDown(32) && fireFighter.fuel > 0) {
         sideSpeed -=
           Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
         downSpeed -=
           Math.sin(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
         fireFighter.state = "thrust";
+
+        fireFighter.fuel--;
       }
 
       //if collision is false then you're just flying normally
@@ -264,6 +300,12 @@ function keyPressed() {
     fireFighter.rotation = 0;
     downSpeed = 0;
     sideSpeed = 0;
-    gameState = "play";
+    fireFighter.fuel = 100;
+
+    if (gameState === "start") {
+      gameState = "play";
+    } else {
+      gameState = "start";
+    }
   }
 }
