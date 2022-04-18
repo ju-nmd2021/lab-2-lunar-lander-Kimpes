@@ -3,19 +3,71 @@ function fireFighterSprite(object) {
   push();
   translate(object.x, object.y);
   rotate(object.rotation);
-  strokeWeight(0);
 
+  //stick figure
+  if (object.state != "stand") {
+    push();
+    strokeWeight(0);
+    fill(0, 0, 0);
+    circle(-5, -30, 20);
+
+    strokeWeight(6);
+    noFill();
+    bezier(10, 0, 20, 0, 20, -20, -10, -30); //right arm
+    bezier(-30, 0, -30, -10, -30, -15, -10, -30); //left arm
+    bezier(-10, -30, -15, -40, -30, -35, -35, -25); //body
+    line(-35, -25, 0, -13); //right leg
+    line(-35, -25, -50, -5); //left leg
+    pop();
+
+    fireExtinguisher();
+
+    pop();
+  } else {
+    push();
+    strokeWeight(0);
+    fill(0, 0, 0);
+    circle(-25, -60, 20);
+
+    strokeWeight(6);
+    noFill();
+    bezier(15, -50, 5, -40, -10, -40, -30, -50); //right arm
+    bezier(5, -10, 5, -10, -30, -40, -30, -50); //left arm
+    bezier(-35, -35, -35, -40, -35, -50, -25, -60); //body
+    line(-35, -35, -15, 0); //right leg
+    line(-35, -35, -35, 0); //left leg
+    pop();
+
+    push();
+    translate(10, -30);
+    rotate(-1.3);
+    fireExtinguisher();
+    pop();
+
+    pop();
+  }
+}
+
+function fireExtinguisher() {
   //fire extinguisher body
+  strokeWeight(0);
+  translate(-10, 0);
   fill(255, 0, 0);
   rect(-25, -10, 50, 20);
   circle(25, 0, 20);
 
   //muzzle
   push();
-  translate(15, 8);
-  fill(0, 0, 0);
+  translate(10, 8);
+  fill(150, 0, 0);
   triangle(0, 0, -5, 10, 5, 10);
   pop();
+
+  push();
+  stroke(150, 0, 0);
+  strokeWeight(4);
+  line(33, 5, 34, -10);
+  line(33, 5, 40, -8);
   pop();
 }
 
@@ -25,8 +77,7 @@ function collisionBlock(object) {
   translate(object.x, object.y);
   fill(100, 100, 100);
   strokeWeight(0);
-
-  rect(-object.width / 2, 0, object.width, 50);
+  rect(-object.width / 2, 0, object.width, 20);
   pop();
 }
 
@@ -57,7 +108,7 @@ let gravity = 0.1;
 let friction = 0.9;
 let downSpeed = 0;
 let sideSpeed = 0;
-let gameState = "fail";
+let gameState = "play";
 
 //the draw function. It makes things happen
 function draw() {
@@ -79,21 +130,21 @@ function draw() {
     for (let platform of platforms) {
       if (
         fireFighter.y + 10 > platform.y &&
-        fireFighter.y < platform.y + 50 &&
+        fireFighter.y < platform.y + 20 &&
         fireFighter.x < platform.x + platform.width / 2 &&
         fireFighter.x > platform.x - platform.width / 2
       ) {
         collisionDetection++;
       }
       if (collisionDetection) {
-        fireFighter.collision = true;
+        fireFighter.state = "stand";
       } else {
-        fireFighter.collision = false;
+        fireFighter.state = "fall";
       }
     }
 
     //if collision is false then you're just flying normally
-    if (fireFighter.collision === false) {
+    if (fireFighter.state === "fall") {
       if (keyIsDown(68)) {
         fireFighter.rotation += 0.1;
       } else if (keyIsDown(65)) {
