@@ -255,6 +255,7 @@ function draw() {
           ) {
             if (platform.goal === true && sideSpeed === 0) {
               multiplier = 1 / (platform.width / 100);
+              multiplier = 1 / (200 / platform.x);
               gameState = "win";
             }
             collisionDetection++;
@@ -355,6 +356,9 @@ function keyPressed() {
       platforms.splice(1, 2);
       for (let i = 0; i < 2; i++) {
         seedX += Math.floor(Math.random() * 200 + 100);
+        if (seedX > width - 125) {
+          seedX = width - 125;
+        }
         seedY = Math.floor(Math.random() * 400 + 100);
         seedWidth = Math.floor(Math.random() * 50 + 50);
 
