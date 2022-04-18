@@ -116,27 +116,33 @@ function collisionBlock(object) {
 //variables for gameplay
 let fireFighter = {
   x: 100,
-  y: 250,
+  y: 300,
   rotation: 0,
   thrustForce: 0.5,
-  state: "fall",
+  state: "stand",
   fuel: 100,
 };
 
-let platform1 = {
+let startingPlatform = {
   x: 100,
   y: 300,
   width: 100,
   goal: false,
 };
-let platform2 = {
-  x: 400,
-  y: 300,
-  width: 100,
-  goal: true,
-};
+// let platformEasyGoal = {
+//   x: 320,
+//   y: 300,
+//   width: 100,
+//   goal: true,
+// };
+// let platformHardGoal = {
+//   x: 500,
+//   y: 400,
+//   width: 50,
+//   goal: true,
+// };
 
-let platforms = [platform1, platform2];
+let platforms = [startingPlatform];
 
 let gravity = 0.2;
 let friction = 0.9;
@@ -145,6 +151,7 @@ let sideSpeed = 0;
 let subTimer = 0;
 let timer = 10;
 let gameState = "start";
+let multiplier = 1;
 
 //the draw function. It makes things happen
 function draw() {
@@ -183,8 +190,10 @@ function draw() {
   } else {
     //not the start screen
     fireFighterSprite(fireFighter);
-    collisionBlock(platform1);
-    collisionBlock(platform2);
+
+    for (let platform of platforms) {
+      collisionBlock(platform);
+    }
 
     push();
     fill(0, 0, 0);
@@ -209,7 +218,8 @@ function draw() {
       fill(0, 150, 0);
       textSize(20);
       text(
-        "Score: " + (fireFighter.fuel / 10) * (timer * 10),
+        "Score: " +
+          Math.floor((fireFighter.fuel / 10) * (timer * 10) * multiplier),
         width / 2 - 275,
         130,
         550
@@ -244,7 +254,7 @@ function draw() {
             fireFighter.y < platform.y + 10
           ) {
             if (platform.goal === true && sideSpeed === 0) {
-              console.log("win");
+              multiplier = 1 / (platform.width / 100);
               gameState = "win";
             }
             collisionDetection++;
@@ -252,9 +262,11 @@ function draw() {
             gameState = "fail";
           }
         }
-        if (collisionDetection) {
+        if (collisionDetection >= 1) {
+          if (fireFighter.state !== "stand") {
+            fireFighter.y = platform.y - 9;
+          }
           fireFighter.state = "stand";
-          fireFighter.y = platform.y - 9;
         } else {
           fireFighter.state = "fall";
         }
@@ -327,7 +339,7 @@ function keyPressed() {
   if (keyIsDown(82)) {
     //reset button for testing purposes
     fireFighter.x = 100;
-    fireFighter.y = 200;
+    fireFighter.y = 292;
     fireFighter.rotation = 0;
     downSpeed = 0;
     sideSpeed = 0;
@@ -335,7 +347,24 @@ function keyPressed() {
     timer = 10;
     subTimer = 0;
 
+    seedX = startingPlatform.width;
+    seedY = 0;
+    seedWidth = 0;
+
     if (gameState === "start") {
+      platforms.splice(1, 2);
+      for (let i = 0; i < 2; i++) {
+        seedX += Math.floor(Math.random() * 200 + 100);
+        seedY = Math.floor(Math.random() * 400 + 100);
+        seedWidth = Math.floor(Math.random() * 50 + 50);
+
+        platforms.push({
+          x: seedX,
+          y: seedY,
+          width: seedWidth,
+          goal: true,
+        });
+      }
       gameState = "play";
     } else {
       gameState = "start";
