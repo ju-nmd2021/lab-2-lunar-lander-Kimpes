@@ -1,8 +1,28 @@
+function thrustCloud() {
+  push();
+  stroke(255, 255, 255);
+  strokeWeight(5);
+  translate(-20, 0);
+  line(
+    20,
+    0,
+    Math.floor(Math.random() * 40),
+    100 + Math.floor(Math.random() * 10)
+  );
+  circle(
+    Math.floor(Math.random() * 40) - 20,
+    Math.floor(Math.random() * 10) + 100,
+    Math.floor(Math.random() * 20)
+  );
+  pop();
+}
+
 //the sprite for the main character
 function fireFighterSprite(object) {
   push();
   translate(object.x, object.y);
   rotate(object.rotation);
+  scale(0.7);
 
   //stick figure
   if (object.state != "stand") {
@@ -20,11 +40,18 @@ function fireFighterSprite(object) {
     line(-35, -25, -50, -5); //left leg
     pop();
 
+    if (object.state === "thrust") {
+      for (let i = 0; i < 4; i++) {
+        thrustCloud();
+      }
+    }
     fireExtinguisher();
 
     pop();
   } else {
+    //if fire fighter has landed
     push();
+    translate(0, 10);
     strokeWeight(0);
     fill(0, 0, 0);
     circle(-25, -60, 20);
@@ -39,7 +66,7 @@ function fireFighterSprite(object) {
     pop();
 
     push();
-    translate(10, -30);
+    translate(10, -23);
     rotate(-1.3);
     fireExtinguisher();
     pop();
@@ -58,7 +85,8 @@ function fireExtinguisher() {
 
   //muzzle
   push();
-  translate(10, 8);
+  translate(10, 6);
+  scale(1.5);
   fill(150, 0, 0);
   triangle(0, 0, -5, 10, 5, 10);
   pop();
@@ -104,7 +132,7 @@ let platform2 = {
 
 let platforms = [platform1, platform2];
 
-let gravity = 0.1;
+let gravity = 0.2;
 let friction = 0.9;
 let downSpeed = 0;
 let sideSpeed = 0;
@@ -118,23 +146,30 @@ function draw() {
   collisionBlock(platform2);
 
   if (gameState === "play") {
-    if (keyIsDown(32)) {
-      sideSpeed -=
-        Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
-      downSpeed -=
-        Math.sin(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
-    }
-
     //checks collision with all platforms
     let collisionDetection = 0;
     for (let platform of platforms) {
       if (
+        //checks if you've collided
         fireFighter.y + 10 > platform.y &&
         fireFighter.y < platform.y + 20 &&
         fireFighter.x < platform.x + platform.width / 2 &&
         fireFighter.x > platform.x - platform.width / 2
       ) {
-        collisionDetection++;
+        //checks if the collision was fatal
+        if (
+          fireFighter.rotation <= 1.5 &&
+          fireFighter.rotation >= -1.5 &&
+          downSpeed <= 5
+        ) {
+          collisionDetection++;
+        } else if (
+          fireFighter.rotation < 1 ||
+          fireFighter.rotation > -1 ||
+          downSpeed < 5
+        ) {
+          gameState = "fail";
+        }
       }
       if (collisionDetection) {
         fireFighter.state = "stand";
@@ -143,8 +178,16 @@ function draw() {
       }
     }
 
+    if (keyIsDown(32)) {
+      sideSpeed -=
+        Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
+      downSpeed -=
+        Math.sin(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
+      fireFighter.state = "thrust";
+    }
+
     //if collision is false then you're just flying normally
-    if (fireFighter.state === "fall") {
+    if (fireFighter.state !== "stand") {
       if (keyIsDown(68)) {
         fireFighter.rotation += 0.1;
       } else if (keyIsDown(65)) {
