@@ -142,6 +142,8 @@ let gravity = 0.2;
 let friction = 0.9;
 let downSpeed = 0;
 let sideSpeed = 0;
+let subTimer = 0;
+let timer = 10;
 let gameState = "start";
 
 //the draw function. It makes things happen
@@ -149,6 +151,7 @@ function draw() {
   background(150, 200, 250);
 
   if (gameState === "start") {
+    //start screen
     textAlign(CENTER);
     push();
     fill(200, 50, 50);
@@ -177,14 +180,8 @@ function draw() {
     text("Press A & D to steer", width / 2, 220);
     text("Press R to start (and restart)", width / 2, 240);
     pop();
-  } else if (gameState === "win") {
-    textAlign(CENTER);
-    push();
-    fill(200, 50, 50);
-    textSize(30);
-    text("Success!", width / 2 - 275, 100, 550);
-    pop();
   } else {
+    //not the start screen
     fireFighterSprite(fireFighter);
     collisionBlock(platform1);
     collisionBlock(platform2);
@@ -195,7 +192,41 @@ function draw() {
     text("fuel: " + fireFighter.fuel, 80, 40);
     pop();
 
+    push();
+    fill(0, 0, 0);
+    textSize(30);
+    text("time left: " + timer + "s", width - 120, 40);
+    pop();
+
+    //victory screen!
+    if (gameState === "win") {
+      textAlign(CENTER);
+      push();
+      fill(200, 50, 50);
+      textSize(30);
+      text("Success!", width / 2 - 275, 100, 550);
+
+      fill(0, 150, 0);
+      textSize(20);
+      text(
+        "Score: " + (fireFighter.fuel / 10) * (timer * 10),
+        width / 2 - 275,
+        130,
+        550
+      );
+      pop();
+    }
+
+    //actual gameplay state
     if (gameState === "play") {
+      subTimer++;
+      if (subTimer % 30 === 0) {
+        timer--;
+        if (timer === 0) {
+          gameState = "fail";
+        }
+      }
+
       //checks collision with all platforms
       let collisionDetection = 0;
       for (let platform of platforms) {
@@ -212,6 +243,10 @@ function draw() {
             downSpeed <= 5 &&
             fireFighter.y < platform.y + 10
           ) {
+            if (platform.goal === true && sideSpeed === 0) {
+              console.log("win");
+              gameState = "win";
+            }
             collisionDetection++;
           } else {
             gameState = "fail";
@@ -220,10 +255,6 @@ function draw() {
         if (collisionDetection) {
           fireFighter.state = "stand";
           fireFighter.y = platform.y - 9;
-          if (platform.goal === true && fireFighter.sideSpeed === 0) {
-            console.log("win");
-            gameState = "win";
-          }
         } else {
           fireFighter.state = "fall";
         }
@@ -285,7 +316,7 @@ function draw() {
       pop();
 
       push();
-      text("Press R to play again", width / 2, 500);
+      text("Press R to return to main menu", width / 2, 500);
       pop();
     }
   }
@@ -301,6 +332,8 @@ function keyPressed() {
     downSpeed = 0;
     sideSpeed = 0;
     fireFighter.fuel = 100;
+    timer = 10;
+    subTimer = 0;
 
     if (gameState === "start") {
       gameState = "play";
