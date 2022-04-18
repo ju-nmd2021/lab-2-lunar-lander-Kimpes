@@ -3,6 +3,7 @@ function thrustCloud() {
   stroke(255, 255, 255);
   strokeWeight(5);
   translate(-20, 0);
+
   line(
     20,
     0,
@@ -10,9 +11,9 @@ function thrustCloud() {
     100 + Math.floor(Math.random() * 10)
   );
   circle(
-    Math.floor(Math.random() * 40) - 20,
+    Math.floor(Math.random() * 40),
     Math.floor(Math.random() * 10) + 100,
-    Math.floor(Math.random() * 20)
+    Math.floor(Math.random() * 40)
   );
   pop();
 }
@@ -105,29 +106,28 @@ function collisionBlock(object) {
   translate(object.x, object.y);
   fill(100, 100, 100);
   strokeWeight(0);
-  rect(-object.width / 2, 0, object.width, 20);
+  rect(-object.width / 2, 0, object.width, height - object.y);
   pop();
 }
 
 //variables for gameplay
 let fireFighter = {
   x: 100,
-  y: 200,
+  y: 250,
   rotation: 0,
   thrustForce: 0.5,
-  collision: false,
   state: "fall",
 };
 
 let platform1 = {
   x: 100,
   y: 300,
-  width: 200,
+  width: 100,
 };
 let platform2 = {
   x: 400,
   y: 300,
-  width: 200,
+  width: 100,
 };
 
 let platforms = [platform1, platform2];
@@ -136,104 +136,122 @@ let gravity = 0.2;
 let friction = 0.9;
 let downSpeed = 0;
 let sideSpeed = 0;
-let gameState = "play";
+let gameState = "start";
 
 //the draw function. It makes things happen
 function draw() {
-  background(150, 150, 150);
-  fireFighterSprite(fireFighter);
-  collisionBlock(platform1);
-  collisionBlock(platform2);
+  background(150, 200, 250);
 
-  if (gameState === "play") {
-    //checks collision with all platforms
-    let collisionDetection = 0;
-    for (let platform of platforms) {
-      if (
-        //checks if you've collided
-        fireFighter.y + 10 > platform.y &&
-        fireFighter.y < platform.y + 20 &&
-        fireFighter.x < platform.x + platform.width / 2 &&
-        fireFighter.x > platform.x - platform.width / 2
-      ) {
-        //checks if the collision was fatal
-        if (
-          fireFighter.rotation <= 1.5 &&
-          fireFighter.rotation >= -1.5 &&
-          downSpeed <= 5
-        ) {
-          collisionDetection++;
-        } else if (
-          fireFighter.rotation < 1 ||
-          fireFighter.rotation > -1 ||
-          downSpeed < 5
-        ) {
-          gameState = "fail";
-        }
-      }
-      if (collisionDetection) {
-        fireFighter.state = "stand";
-      } else {
-        fireFighter.state = "fall";
-      }
-    }
-
-    if (keyIsDown(32)) {
-      sideSpeed -=
-        Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
-      downSpeed -=
-        Math.sin(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
-      fireFighter.state = "thrust";
-    }
-
-    //if collision is false then you're just flying normally
-    if (fireFighter.state !== "stand") {
-      if (keyIsDown(68)) {
-        fireFighter.rotation += 0.1;
-      } else if (keyIsDown(65)) {
-        fireFighter.rotation -= 0.1;
-      }
-      downSpeed += gravity;
-
-      //if collision true then you've landed on something
-    } else {
-      //can't keep falling if collided
-      if (downSpeed > 0) {
-        downSpeed = 0;
-      }
-      //resets rotation upon landing
-      if (fireFighter.rotation != 0) {
-        fireFighter.rotation = 0;
-      }
-
-      //slows down horizontal movement when landed, to simulate friction
-      if (sideSpeed > 0.3 || sideSpeed < -0.3) {
-        sideSpeed *= friction;
-      } else {
-        sideSpeed = 0;
-      }
-    }
-    fireFighter.y += downSpeed;
-    fireFighter.x += sideSpeed;
-
-    if (
-      fireFighter.x < -50 ||
-      fireFighter.x > width + 50 ||
-      fireFighter.y < -50 ||
-      fireFighter.y > height + 50
-    ) {
-      gameState = "fail";
-    }
-  } else if (gameState === "fail") {
+  if (gameState === "start") {
     textAlign(CENTER);
     push();
     textSize(30);
-    text("GAME OVER", width / 2, 100);
+    text(
+      "Lenny Fire Fighter's Last Leap of Luck The Game",
+      width / 2 - 275,
+      100,
+      550
+    );
     pop();
 
     push();
-    text("Press R to play again", width / 2, 500);
+    text("Press SPACEBAR to thrust", width / 2, 200);
+    text("Press A & D to steer", width / 2, 220);
+    text("Press R to start (and restart)", width / 2, 240);
     pop();
+  } else if (gameState === "win") {
+  } else {
+    fireFighterSprite(fireFighter);
+    collisionBlock(platform1);
+    collisionBlock(platform2);
+
+    if (gameState === "play") {
+      //checks collision with all platforms
+      let collisionDetection = 0;
+      for (let platform of platforms) {
+        if (
+          //checks if you've collided
+          fireFighter.y + 10 > platform.y &&
+          fireFighter.x < platform.x + platform.width / 2 &&
+          fireFighter.x > platform.x - platform.width / 2
+        ) {
+          //checks if the collision was fatal
+          if (
+            fireFighter.rotation <= 1.5 &&
+            fireFighter.rotation >= -1.5 &&
+            downSpeed <= 5 &&
+            fireFighter.y < platform.y + 10
+          ) {
+            collisionDetection++;
+          } else {
+            gameState = "fail";
+          }
+        }
+        if (collisionDetection) {
+          fireFighter.state = "stand";
+          fireFighter.y = platform.y - 9;
+        } else {
+          fireFighter.state = "fall";
+        }
+      }
+
+      if (keyIsDown(32)) {
+        sideSpeed -=
+          Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
+        downSpeed -=
+          Math.sin(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
+        fireFighter.state = "thrust";
+      }
+
+      //if collision is false then you're just flying normally
+      if (fireFighter.state !== "stand") {
+        if (keyIsDown(68)) {
+          fireFighter.rotation += 0.1;
+        } else if (keyIsDown(65)) {
+          fireFighter.rotation -= 0.1;
+        }
+        downSpeed += gravity;
+
+        //if collision true then you've landed on something
+      } else {
+        //can't keep falling if collided
+        if (downSpeed > 0) {
+          downSpeed = 0;
+        }
+        //resets rotation upon landing
+        if (fireFighter.rotation != 0) {
+          fireFighter.rotation = 0;
+        }
+
+        //slows down horizontal movement when landed, to simulate friction
+        if (sideSpeed > 0.3 || sideSpeed < -0.3) {
+          sideSpeed *= friction;
+        } else {
+          sideSpeed = 0;
+        }
+      }
+      fireFighter.y += downSpeed;
+      fireFighter.x += sideSpeed;
+
+      if (
+        fireFighter.x < -50 ||
+        fireFighter.x > width + 50 ||
+        fireFighter.y < -50 ||
+        fireFighter.y > height + 50
+      ) {
+        gameState = "fail";
+      }
+    } else if (gameState === "fail") {
+      textAlign(CENTER);
+      push();
+      textSize(30);
+      text("GAME OVER", width / 2, 100);
+      pop();
+
+      push();
+      text("Press R to play again", width / 2, 500);
+      pop();
+    }
   }
 }
 
