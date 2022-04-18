@@ -32,15 +32,20 @@ function collisionBlock(object) {
 
 //variables for gameplay
 let fireFighter = {
-  x: width / 2,
-  y: 100,
+  x: 100,
+  y: 200,
   rotation: 0,
   thrustForce: 0.5,
   collision: false,
 };
 
 let platform1 = {
-  x: width / 2,
+  x: 100,
+  y: 300,
+  width: 200,
+};
+let platform2 = {
+  x: 400,
   y: 300,
   width: 200,
 };
@@ -56,6 +61,9 @@ function draw() {
   background(150, 150, 150);
   fireFighterSprite(fireFighter);
   collisionBlock(platform1);
+  collisionBlock(platform2);
+
+  let platforms = [platform1, platform2];
 
   if (gameState === "play") {
     if (keyIsDown(32)) {
@@ -66,15 +74,26 @@ function draw() {
     }
 
     //checks collision with platform1
-    if (
-      fireFighter.y + 10 > platform1.y &&
-      fireFighter.y < platform1.y + 50 &&
-      fireFighter.x < platform1.x + platform1.width / 2 &&
-      fireFighter.x > platform1.x - platform1.width / 2
-    ) {
-      fireFighter.collision = true; //TODO: convert to for loop
-    } else {
-      fireFighter.collision = false;
+    // if (
+    //   fireFighter.y + 10 > platform1.y &&
+    //   fireFighter.y < platform1.y + 50 &&
+    //   fireFighter.x < platform1.x + platform1.width / 2 &&
+    //   fireFighter.x > platform1.x - platform1.width / 2
+    // ) {
+    //   fireFighter.collision = true; //TODO: convert to for loop
+    // } else {
+    //   fireFighter.collision = false;
+    // }
+
+    for (let platform in platforms) {
+      if (
+        fireFighter.y + 10 > platform.y &&
+        fireFighter.y < platform.y + 50 &&
+        fireFighter.x < platform.x + platform.width / 2 &&
+        fireFighter.x > platform.x - platform.width / 2
+      ) {
+        fireFighter.collision = true;
+      }
     }
 
     //if collision is false then you're just flying normally
@@ -113,8 +132,8 @@ function keyPressed() {
   console.log(keyCode);
   if (keyIsDown(82)) {
     //reset button for testing purposes
-    fireFighter.x = width / 2;
-    fireFighter.y = 100;
+    fireFighter.x = 100;
+    fireFighter.y = 200;
     fireFighter.rotation = 0;
     downSpeed = 0;
     sideSpeed = 0;
