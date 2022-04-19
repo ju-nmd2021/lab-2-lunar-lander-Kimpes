@@ -76,6 +76,28 @@ function fireFighterSprite(object) {
   }
 }
 
+function fire(x, y, s) {
+  push();
+  translate(x, y);
+  scale(s);
+  fireShape(255, 0, 0, 1);
+  fireShape(255, 255, 0, 0.6);
+  pop();
+}
+
+function fireShape(r, g, b, s) {
+  push();
+  strokeWeight(0);
+  scale(s);
+  fill(r, g, b);
+  circle(0, 0, 50);
+
+  triangle(0, 0, -25, 0, -25, -50);
+  triangle(0, 0, 25, 0, 25, -40);
+  triangle(-25, 0, 25, 0, 0, -60);
+  pop();
+}
+
 function fireExtinguisher() {
   //fire extinguisher body
   strokeWeight(0);
@@ -105,11 +127,30 @@ function collisionBlock(object) {
   push();
   translate(object.x, object.y);
   fill(100, 100, 100);
+  strokeWeight(0);
+
+  //If the building is a goal then it should be burning
   if (object.goal) {
     fill(200, 100, 100);
+    rect(-object.width / 2, 0, object.width, height - object.y);
+    fire(
+      object.fire1.x * object.width - object.width / 2,
+      object.fire1.y * (height - object.y) + 50,
+      (Math.random() * 1 + 6) / 10
+    );
+    fire(
+      object.fire2.x * object.width - object.width / 2,
+      object.fire2.y * (height - object.y) + 50,
+      (Math.random() * 1 + 6) / 10
+    );
+    fire(
+      object.fire3.x * object.width - object.width / 2,
+      object.fire3.y * (height - object.y) + 50,
+      (Math.random() * 1 + 6) / 10
+    );
+  } else {
+    rect(-object.width / 2, 0, object.width, height - object.y);
   }
-  strokeWeight(0);
-  rect(-object.width / 2, 0, object.width, height - object.y);
   pop();
 }
 
@@ -129,20 +170,9 @@ let startingPlatform = {
   width: 100,
   goal: false,
 };
-// let platformEasyGoal = {
-//   x: 320,
-//   y: 300,
-//   width: 100,
-//   goal: true,
-// };
-// let platformHardGoal = {
-//   x: 500,
-//   y: 400,
-//   width: 50,
-//   goal: true,
-// };
 
 let platforms = [startingPlatform];
+let fires = [];
 
 let gravity = 0.2;
 let friction = 0.9;
@@ -160,6 +190,9 @@ function draw() {
   if (gameState === "start") {
     //start screen
     textAlign(CENTER);
+    fire(120, 115, 0.5);
+    fire(680, 115, 0.5);
+
     push();
     fill(200, 50, 50);
     textSize(30);
@@ -186,6 +219,7 @@ function draw() {
     text("Press SPACEBAR to thrust", width / 2, 200);
     text("Press A & D to steer", width / 2, 220);
     text("Press R to start (and restart)", width / 2, 240);
+    text("(bonus points for flips)", width / 2, 260);
     pop();
   } else {
     //not the start screen
@@ -210,6 +244,7 @@ function draw() {
     //victory screen!
     if (gameState === "win") {
       textAlign(CENTER);
+      console.log(multiplier);
       push();
       fill(200, 50, 50);
       textSize(30);
@@ -217,13 +252,10 @@ function draw() {
 
       fill(0, 150, 0);
       textSize(20);
-      text(
-        "Score: " +
-          Math.floor((fireFighter.fuel / 10) * (timer * 10) * multiplier),
-        width / 2 - 275,
-        130,
-        550
+      let score = Math.floor(
+        (fireFighter.fuel / 10) * (timer * 10) * multiplier
       );
+      text("Score: " + score, width / 2 - 275, 130, 550);
       pop();
     }
 
@@ -254,8 +286,8 @@ function draw() {
             fireFighter.y < platform.y + 10
           ) {
             if (platform.goal === true && sideSpeed === 0) {
-              multiplier = 1 / (platform.width / 100);
-              multiplier = 1 / (200 / platform.x);
+              multiplier = multiplier / (platform.width / 100);
+              multiplier = multiplier / (200 / platform.x);
               gameState = "win";
             }
             collisionDetection++;
@@ -273,6 +305,7 @@ function draw() {
         }
       }
 
+      //thrust logic
       if (keyIsDown(32) && fireFighter.fuel > 0) {
         sideSpeed -=
           Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
@@ -283,12 +316,22 @@ function draw() {
         fireFighter.fuel--;
       }
 
-      //if collision is false then you're just flying normally
+      //rotation logic
       if (fireFighter.state !== "stand") {
         if (keyIsDown(68)) {
           fireFighter.rotation += 0.1;
+          if (fireFighter.rotation >= 1.5 * PI) {
+            fireFighter.rotation = -0.5 * PI;
+            console.log("flip!");
+            multiplier *= 1.5;
+          }
         } else if (keyIsDown(65)) {
           fireFighter.rotation -= 0.1;
+          if (fireFighter.rotation <= -1.5 * PI) {
+            fireFighter.rotation = 0.5 * PI;
+            console.log("flip!");
+            multiplier *= 1.5;
+          }
         }
         downSpeed += gravity;
 
@@ -347,13 +390,24 @@ function keyPressed() {
     fireFighter.fuel = 100;
     timer = 10;
     subTimer = 0;
+    multiplier = 1;
 
     seedX = startingPlatform.width;
     seedY = 0;
     seedWidth = 0;
 
     if (gameState === "start") {
+      fires.splice(0, 6);
       platforms.splice(1, 2);
+      //randomises placement of fires
+      for (let i = 0; i < 6; i++) {
+        let fireSeed = {
+          x: Math.random(),
+          y: Math.random(),
+        };
+        fires.push(fireSeed);
+      }
+      //randomises placement and size of buildings
       for (let i = 0; i < 2; i++) {
         seedX += Math.floor(Math.random() * 200 + 100);
         if (seedX > width - 125) {
@@ -367,8 +421,12 @@ function keyPressed() {
           y: seedY,
           width: seedWidth,
           goal: true,
+          fire1: fires[i],
+          fire2: fires[i + 2],
+          fire3: fires[i + 4],
         });
       }
+
       gameState = "play";
     } else {
       gameState = "start";
