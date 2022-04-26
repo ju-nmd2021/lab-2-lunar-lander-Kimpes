@@ -305,7 +305,7 @@ function draw() {
         }
       }
 
-      //thrust logic
+      //thrust logic inspired by Garrit's Lecture 12
       if (keyIsDown(32) && fireFighter.fuel > 0) {
         sideSpeed -=
           Math.cos(fireFighter.rotation + PI / 2) * fireFighter.thrustForce;
