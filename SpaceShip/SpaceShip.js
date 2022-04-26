@@ -190,8 +190,8 @@ function draw() {
   if (gameState === "start") {
     //start screen
     textAlign(CENTER);
-    fire(120, 115, 0.5);
-    fire(680, 115, 0.5);
+    fire(50, 115, 0.5);
+    fire(width - 50, 115, 0.5);
 
     push();
     fill(200, 50, 50);
